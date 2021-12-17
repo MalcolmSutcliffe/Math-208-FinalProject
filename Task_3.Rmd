@@ -1,0 +1,59 @@
+---
+title: "Task#3"
+output: html_document
+---
+
+SETUP.
+```{r}
+library(readr)
+library(tidyverse)
+
+Final_Project_FlixGem <- read_csv("PUT PATH TO DATA FILE")
+#C:/Users/berge/Downloads/Final_Project_FlixGem.csv 
+```
+CLEANING THE DATA.
+```{r}
+#CLEAN THE ROWS WHERE HGS = NA AND DIRECTOR = NA
+Final_Project_FlixGem <- Final_Project_FlixGem %>% drop_na(`Hidden Gem Score`)
+Final_Project_FlixGem <- Final_Project_FlixGem %>% drop_na(Director)
+```
+
+
+NOW HERE WE CREATE A METHOD TO CALCULATE THE HG H-INDEX OF A DIRECTOR GIVEN A LIST
+OF RATINGS(i.e Hidden Gem Score).
+```{r}
+#The logic for this is that we order the ratings of the films in decreasing order.
+#Then going down in the list we find the index of the first movie where its index 
+#is greater than or equal to its rating.
+hg_h_index = function(ratings) {
+  if(max(ratings) < 1) return(1)
+  ratings = ratings[order(ratings, decreasing = TRUE)]
+  hg_h = tail(which(ratings >= seq_along(ratings)), 1)
+  return(hg_h)
+}
+
+```
+
+
+NOW WE CREATE THE TABLE OF DIRECTORS AND THEIR CORRESPONDING HG H-INDEX.
+```{r}
+result <- tibble("Director" = character(0),
+                 "HG H-Index" = numeric(0))
+count = 1
+
+for(director in unique(Final_Project_FlixGem$Director)) {
+  
+  data = Final_Project_FlixGem %>% filter(Director == director)
+  ratings = data$`Hidden Gem Score`
+  hg_h = hg_h_index(ratings)
+  
+  result[count, ] <- list(director, hg_h)
+  
+  count = count + 1
+  
+}
+
+result
+```
+
+
